@@ -1,14 +1,15 @@
-FROM node:18-alpine
+FROM node:20-bookworm-slim
 
-RUN apk update && apk add --no-cache --virtual build-dependencies \
-    bash procps make gcc g++ curl wget sudo python3
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash procps make gcc g++ curl wget sudo python3 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy upstream Lightning Jet source (git submodule)
 COPY lightning-jet/ /app/
 
-RUN npm install --build-from-source --python=$(which python3)
+RUN npm install --python=$(which python3)
 
 ENV PATH="/app:${PATH}"
 
