@@ -29,14 +29,14 @@ export const alertInstall = {
   pl_PL:
     'PRZECZYTAJ UWAŻNIE! To narzędzie dostępne TYLKO z wiersza poleceń. Do dostępu do wiersza poleceń wymagany jest klucz SSH. Instrukcje znajdziesz w przewodniku SSH Start9 (https://docs.start9.com/latest/user-manual/ssh).',
   fr_FR:
-    "À LIRE ATTENTIVEMENT ! Cet outil fonctionne UNIQUEMENT en ligne de commande. Une clé SSH est nécessaire pour accéder à la ligne de commande. Consultez le guide SSH Start9 (https://docs.start9.com/latest/user-manual/ssh) pour la configuration.",
+    'À LIRE ATTENTIVEMENT ! Cet outil fonctionne UNIQUEMENT en ligne de commande. Une clé SSH est nécessaire pour accéder à la ligne de commande. Consultez le guide SSH Start9 (https://docs.start9.com/latest/user-manual/ssh) pour la configuration.',
 }
 
 export const depLndDescription = {
   en_US: 'Required to access your LND node for rebalancing',
   es_ES: 'Necesario para acceder a tu nodo LND para el rebalanceo',
-  de_DE: 'Erforderlich, um für das Rebalancing auf deinen LND-Knoten zuzugreifen',
+  de_DE:
+    'Erforderlich, um für das Rebalancing auf deinen LND-Knoten zuzugreifen',
   pl_PL: 'Wymagane do dostępu do węzła LND w celu rebalansowania',
   fr_FR: 'Requis pour accéder à votre nœud LND pour le rééquilibrage',
 }
-

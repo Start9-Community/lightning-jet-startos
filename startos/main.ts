@@ -1,3 +1,4 @@
+import { manifest as lndManifest } from 'lnd-startos/startos/manifest'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
 import { jetConfigPath, lndMount } from './utils'
@@ -28,7 +29,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
     })
     // LND volume (certs + macaroons). Mounted readonly; Lightning Jet only
     // reads the admin macaroon and tls.cert.
-    .mountDependency({
+    .mountDependency<typeof lndManifest>({
       dependencyId: 'lnd',
       volumeId: 'main',
       subpath: null,
@@ -57,6 +58,10 @@ export const main = sdk.setupMain(async ({ effects }) => {
     },
     ready: {
       display: i18n('Jet Daemon'),
+      // Checks only the watchdog. That's deliberate: launcher.js is responsible
+      // for respawning the rebalancer / htlc-logger / worker / telegram children,
+      // so as long as the watchdog is alive the daemon is considered healthy.
+      // Per-child failures are upstream's to recover, not ours to mask.
       fn: async () => {
         const res = await jetSub.exec(['pgrep', '-f', 'service/launcher.js'])
         if (res.exitCode === 0) {

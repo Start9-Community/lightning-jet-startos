@@ -1,56 +1,30 @@
 import { FileHelper, z } from '@start9labs/start-sdk'
 import { sdk } from '../sdk'
-import {
-  adminMacaroonPath,
-  lndRpcServer,
-  tlsCertPath,
-} from '../utils'
+import { adminMacaroonPath, lndRpcServer, tlsCertPath } from '../utils'
 
-// Defaults for the rebalancer sub-object. Upstream defaults live in
-// lightning-jet/api/config.json; these mirror them while enforcing the
-// StartOS-specific `minCapacity` that the legacy 0.3 entrypoint set.
-const rebalancerDefault = {
-  maxTime: 30,
-  maxPpm: 650,
-  maxAutoPpm: 500,
-  maxInstances: 10,
-  maxPendingHtlcs: 4,
-  enforceMaxPpm: false,
-  enforceProfitability: false,
-  minCapacity: 50_000,
-  buffer: 250,
-  disabled: false,
-  exclude: [] as string[],
-}
-
+// Defaults mirror lightning-jet/api/config.json upstream, with minCapacity
+// overridden to the StartOS 0.3.x value (50_000) for continuity.
 const rebalancerShape = z.object({
-  maxTime: z.number().catch(rebalancerDefault.maxTime),
-  maxPpm: z.number().catch(rebalancerDefault.maxPpm),
-  maxAutoPpm: z.number().catch(rebalancerDefault.maxAutoPpm),
-  maxInstances: z.number().catch(rebalancerDefault.maxInstances),
-  maxPendingHtlcs: z.number().catch(rebalancerDefault.maxPendingHtlcs),
-  enforceMaxPpm: z.boolean().catch(rebalancerDefault.enforceMaxPpm),
-  enforceProfitability: z
-    .boolean()
-    .catch(rebalancerDefault.enforceProfitability),
-  minCapacity: z.number().catch(rebalancerDefault.minCapacity),
-  buffer: z.number().catch(rebalancerDefault.buffer),
-  disabled: z.boolean().catch(rebalancerDefault.disabled),
+  maxTime: z.number().catch(30),
+  maxPpm: z.number().catch(650),
+  maxAutoPpm: z.number().catch(500),
+  maxInstances: z.number().catch(10),
+  maxPendingHtlcs: z.number().catch(4),
+  enforceMaxPpm: z.boolean().catch(false),
+  enforceProfitability: z.boolean().catch(false),
+  minCapacity: z.number().catch(50_000),
+  buffer: z.number().catch(250),
+  disabled: z.boolean().catch(false),
   exclude: z.array(z.string()).catch([]),
 })
 
-const logDefault = { level: 'info' }
 const logShape = z.object({
-  level: z.string().catch(logDefault.level),
+  level: z.string().catch('info'),
 })
 
-const dbDefault = {
-  maxRebalanceHistoryDepth: '180',
-  maxChannelEventsDepth: '180',
-}
 const dbShape = z.object({
-  maxRebalanceHistoryDepth: z.string().catch(dbDefault.maxRebalanceHistoryDepth),
-  maxChannelEventsDepth: z.string().catch(dbDefault.maxChannelEventsDepth),
+  maxRebalanceHistoryDepth: z.string().catch('180'),
+  maxChannelEventsDepth: z.string().catch('180'),
 })
 
 const shape = z.object({
@@ -60,7 +34,6 @@ const shape = z.object({
   serverAddress: z.literal(lndRpcServer).catch(lndRpcServer),
 
   // User-configurable
-  debugMode: z.boolean().catch(false),
   telegramToken: z.string().optional().catch(undefined),
   avoid: z.array(z.string()).catch([]),
 

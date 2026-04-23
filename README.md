@@ -42,7 +42,7 @@ with it from a shell on your StartOS server.
 | Property | Value |
 |----------|-------|
 | Source | `dockerBuild` from local `Dockerfile` (no upstream Docker image) |
-| Base | `node:18-alpine` |
+| Base | `node:20-bookworm-slim` |
 | Upstream source | Git submodule at `lightning-jet/` pinned to upstream tag |
 | Architectures | x86_64, aarch64 |
 
@@ -124,7 +124,6 @@ container sees any changes after a restart.
 | `tlsCertPath` | `/mnt/lnd/tls.cert` | Fixed — locked to LND mount path |
 | `serverAddress` | `lnd.startos:10009` | Fixed — StartOS internal hostname |
 | `telegramToken` | unset | Set via the **Configure Telegram Bot** action |
-| `debugMode` | `false` | Internal flag; users may toggle by editing the file |
 | `rebalancer.minCapacity` | `50000` | Matches 0.3.x default |
 | `rebalancer.maxTime` | `30` | Max minutes per rebalance attempt |
 | `rebalancer.maxPpm` | `650` | Max PPM fee rate for manual rebalances |
@@ -257,7 +256,7 @@ package_id: lightning-jet
 upstream: https://github.com/itsneski/lightning-jet
 image:
   source: dockerBuild (local Dockerfile)
-  base: node:18-alpine
+  base: node:20-bookworm-slim
 architectures: [x86_64, aarch64]
 volumes:
   main:

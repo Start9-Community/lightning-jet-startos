@@ -1,5 +1,6 @@
 import { VersionInfo, IMPOSSIBLE } from '@start9labs/start-sdk'
 import { rm } from 'fs/promises'
+import { sdk } from '../sdk'
 
 export const v_1_6_0_4 = VersionInfo.of({
   version: '1.6.0:4',
@@ -20,7 +21,7 @@ export const v_1_6_0_4 = VersionInfo.of({
       // Clean up legacy StartOS 0.3.x state directory if present on the
       // main volume. Safe to run on fresh installs (directory will be
       // missing).
-      await rm('/media/startos/volumes/main/start9', {
+      await rm(sdk.volumes.main.subpath('start9'), {
         recursive: true,
       }).catch(() => {})
     },

@@ -8,7 +8,7 @@ export const manifest = setupManifest({
   packageRepo: 'https://github.com/islandbitcoin/lightning-jet-startos',
   upstreamRepo: 'https://github.com/itsneski/lightning-jet',
   marketingUrl: 'https://github.com/itsneski',
-  donationUrl: 'https://t.me/lnjet',
+  donationUrl: null,
   docsUrls: ['https://github.com/itsneski/lightning-jet#readme'],
   description: { short, long },
   volumes: ['main'],
