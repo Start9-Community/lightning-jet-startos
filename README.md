@@ -1,102 +1,282 @@
-# Wrapper for Lightning Jet (or simply Jet)
+<p align="center">
+  <img src="icon.png" alt="Lightning Jet Logo" width="21%">
+</p>
 
-`lightning-jet` is a command line tool for managing channel balances on LND. This is considered a Power User LND Tool, and is not officially supported by Start9.
+# Lightning Jet on StartOS
+
+> **Upstream docs:** <https://github.com/itsneski/lightning-jet#readme>
+>
+> Everything not listed in this document should behave the same as upstream
+> Lightning Jet. If a feature, setting, or behavior is not mentioned here,
+> the upstream documentation is accurate and fully applicable.
+
+[Lightning Jet](https://github.com/itsneski/lightning-jet) is a fully automated
+channel rebalancer for LND Lightning nodes. It classifies peers based on
+routing history, surfaces missed routing opportunities, detects stuck HTLCs,
+and continuously rebalances channel liquidity in the background.
+
+Lightning Jet is a **command-line-only** tool. It has no web UI. You interact
+with it from a shell on your StartOS server.
+
+---
+
+## Table of Contents
+
+- [Image and Container Runtime](#image-and-container-runtime)
+- [Volume and Data Layout](#volume-and-data-layout)
+- [Installation and First-Run Flow](#installation-and-first-run-flow)
+- [Configuration Management](#configuration-management)
+- [Network Access and Interfaces](#network-access-and-interfaces)
+- [Dependencies](#dependencies)
+- [Actions](#actions)
+- [Backups and Restore](#backups-and-restore)
+- [Health Checks](#health-checks)
+- [Limitations and Differences](#limitations-and-differences)
+- [What Is Unchanged from Upstream](#what-is-unchanged-from-upstream)
+- [Quick Reference for AI Consumers](#quick-reference-for-ai-consumers)
+
+---
+
+## Image and Container Runtime
+
+| Property | Value |
+|----------|-------|
+| Source | `dockerBuild` from local `Dockerfile` (no upstream Docker image) |
+| Base | `node:20-bookworm-slim` |
+| Upstream source | Git submodule at `lightning-jet/` pinned to upstream tag |
+| Architectures | x86_64, aarch64 |
+
+The upstream project does not publish a Docker image. The package Dockerfile
+copies the contents of the `lightning-jet/` submodule into `/app`, runs
+`npm install` inside `/app`, and sets `/app` on `PATH` so `jet` is available
+as a command.
+
+**Before building**, initialize and check out the submodule:
+
+```bash
+git submodule update --init --recursive
+```
+
+The submodule is pinned by the parent repo. Update it in a separate PR when
+upstream releases a new tag (see [versions.md](https://docs.start9.com/packaging/versions.html)).
+
+---
+
+## Volume and Data Layout
+
+| Volume | Mount Point | Type | Purpose |
+|--------|-------------|------|---------|
+| `main` | `/app/api/config.json` | single-file bind mount | Jet runtime config, managed by StartOS Actions |
+| (LND dependency) | `/mnt/lnd` | read-only | LND admin macaroon and TLS cert |
+
+**Key paths on the `main` volume:**
+
+- `api/config.json` — Lightning Jet's runtime configuration. Backed by a
+  `FileHelper.json` FileModel and exposed to users via Actions.
+
+The full `/app` directory (source, `node_modules`, the `jet.db` sqlite file)
+is **not** mounted on a persistent volume. It lives inside the container image
+and is recreated on each container rebuild. The 0.3.x package behaved the same
+way — `main` was mounted at `/root`, so jet's internal db was never persisted
+across restarts.
+
+---
+
+## Installation and First-Run Flow
+
+| Step | Upstream | StartOS |
+|------|----------|---------|
+| Installation | Clone repo, `npm install` | Install from marketplace |
+| LND connection | Manual edit of `api/config.json` | Auto-configured via dependency |
+| SSH access | Manual setup | Uses StartOS SSH |
+
+**First-run steps:**
+
+1. Install LND on StartOS.
+2. Install Lightning Jet from the marketplace. Acknowledge the install
+   alert warning that jet is CLI-only and that starting the service begins
+   spending-satoshi rebalance attempts.
+3. Start the service. The `daddy` watchdog launches the rebalancer,
+   htlc-logger, worker, and — if configured — the Telegram bot.
+4. From a shell on your StartOS server, attach to the running container
+   to use the `jet` CLI:
+   ```bash
+   start-cli package attach lightning-jet
+   jet help
+   ```
+5. Optional: run the **Configure Telegram Bot** action from the StartOS UI
+   to enable Jet bot notifications.
+
+---
+
+## Configuration Management
+
+Lightning Jet reads `/app/api/config.json` at startup. StartOS models that
+file with a `FileHelper.json` FileModel on the `main` volume and bind-mounts
+it into the container. Actions read and write this FileModel; the running
+container sees any changes after a restart.
+
+### api/config.json (managed FileModel)
+
+| Setting | Default | Source / Purpose |
+|---------|---------|------------------|
+| `macaroonPath` | `/mnt/lnd/data/chain/bitcoin/mainnet/admin.macaroon` | Fixed — locked to LND mount path |
+| `tlsCertPath` | `/mnt/lnd/tls.cert` | Fixed — locked to LND mount path |
+| `serverAddress` | `lnd.startos:10009` | Fixed — StartOS internal hostname |
+| `telegramToken` | unset | Set via the **Configure Telegram Bot** action |
+| `rebalancer.minCapacity` | `50000` | Matches 0.3.x default |
+| `rebalancer.maxTime` | `30` | Max minutes per rebalance attempt |
+| `rebalancer.maxPpm` | `650` | Max PPM fee rate for manual rebalances |
+| `rebalancer.maxAutoPpm` | `500` | Max PPM fee rate for automated rebalances |
+| `rebalancer.maxInstances` | `10` | Max concurrent rebalance instances |
+| `rebalancer.maxPendingHtlcs` | `4` | FileModel default |
+| `rebalancer.enforceMaxPpm` | `false` | FileModel default |
+| `rebalancer.enforceProfitability` | `false` | FileModel default |
+| `rebalancer.buffer` | `250` | FileModel default |
+| `rebalancer.disabled` | `false` | FileModel default |
+| `rebalancer.exclude` | `[]` | FileModel default |
+| `log.level` | `info` | FileModel default |
+| `db.maxRebalanceHistoryDepth` | `180` | FileModel default |
+| `db.maxChannelEventsDepth` | `180` | FileModel default |
+
+Only the Telegram token is editable through the StartOS UI. Advanced
+rebalancer tuning is left to upstream defaults; users who need to change
+them can edit `api/config.json` directly on the `main` volume or use
+`jet` subcommands where available.
+
+Fields marked **Fixed** are enforced by the FileModel (`z.literal(...).catch(...)`).
+If the file is ever edited manually to a different value, the next `merge()`
+correction restores the StartOS path.
+
+---
+
+## Network Access and Interfaces
+
+Lightning Jet exposes **no network interfaces**. It is a long-running
+rebalancer daemon plus a CLI — no HTTP, gRPC, or peer ports.
+
+All interaction is through an attached shell in the running container:
+
+```bash
+start-cli package attach lightning-jet
+jet <subcommand>
+```
+
+---
 
 ## Dependencies
 
-- [docker](https://docs.docker.com/get-docker)
-- [docker-buildx](https://docs.docker.com/buildx/working-with-buildx/)
-- [yq](https://mikefarah.gitbook.io/yq)
-- [toml](https://crates.io/crates/toml-cli)
-- [embassy-sdk](https://github.com/Start9Labs/embassy-os/tree/master/backend)
-- [make](https://www.gnu.org/software/make/)
+| Dependency | Required | Version | Purpose |
+|------------|----------|---------|---------|
+| LND | yes | `>=0.20.1-beta:1` | Lightning node to rebalance |
 
-## Build enviroment
-Prepare your EmbassyOS build enviroment. In this example we are using Ubuntu 20.04.
+Lightning Jet requires LND's admin macaroon to call mutation RPCs (open,
+close, rebalance). The macaroon and `tls.cert` are read from `/mnt/lnd`,
+which is a read-only mount of LND's `main` volume.
 
-1. Install docker
-```
-curl -fsSL https://get.docker.com -o- | bash
-sudo usermod -aG docker "$USER"
-exec sudo su -l $USER
-```
-2. Set buildx as the default builder
-```
-docker buildx install
-docker buildx create --use
-```
-3. Enable cross-arch emulated builds in docker
-```
-docker run --privileged --rm linuxkit/binfmt:v0.8
-```
-4. Install yq
-```
-sudo snap install yq
-```
-5. Install essentials build packages
-```
-sudo apt-get install -y build-essential openssl libssl-dev libc6-dev clang libclang-dev ca-certificates
-```
-6. Install Rust
-```
-curl https://sh.rustup.rs -sSf | sh
-# Choose nr 1 (default install)
-source $HOME/.cargo/env
-```
-7. Install toml
-```
-cargo install toml-cli
-```
-8. Build and install embassy-sdk
-```
-cd ~/ && git clone https://github.com/Start9Labs/embassy-os.git
-cd embassy-os/backend/
-./install-sdk.sh
-```
+---
 
-## Cloning
+## Actions
 
-Clone the project locally. Note the submodule link to the original project(s). 
+| Action | Purpose |
+|--------|---------|
+| **Configure Telegram Bot** | Set or clear `telegramToken` for Jet bot notifications |
 
+The action writes to the `FileHelper.json` FileModel. Since the file is
+bind-mounted into the container, the next container restart picks up the
+change.
+
+---
+
+## Backups and Restore
+
+**Included in backup:**
+
+- `main` volume — holds `api/config.json`.
+
+**Restore behavior:**
+
+- The FileModel is restored intact, preserving your rebalancer settings
+  and Telegram token. Lightning Jet reconnects to LND automatically on
+  startup using the LND mount.
+
+**Note:** Lightning Jet does not store funds, channels, or keys. All
+Lightning state lives in LND. Back up LND separately.
+
+---
+
+## Health Checks
+
+| Check | Display Name | Method | Messages |
+|-------|--------------|--------|----------|
+| Daemon | Jet Daemon | `pgrep -f service/launcher.js` inside the subcontainer | Running / Not running |
+
+Lightning Jet does not listen on a TCP port, so a `pgrep`-based check is
+used instead of `checkPortListening`. The primary daemon exec is
+`node /app/service/launcher.js` — the "daddy" watchdog, run directly in
+the foreground. Running through the `jet` CLI wrapper (`jet start daddy`)
+would exit immediately because the CLI spawns the watchdog detached, so
+we call the watchdog script itself. No standalone health checks are
+registered.
+
+---
+
+## Limitations and Differences
+
+1. **CLI only** — no web UI, API, or peer port. All interaction is through
+   `start-cli package attach`.
+2. **Ephemeral sqlite db** — `/app/db/jet.db` is not persisted across
+   container rebuilds (matches the 0.3.x behavior, where `main` was mounted
+   at `/root` and the db was never preserved).
+3. **Admin macaroon** — the 0.3.x entrypoint `chmod +r`'d the readonly
+   macaroon; in 0.4.0 the LND mount is strictly read-only, so Jet is pointed
+   at `admin.macaroon` directly. This matches upstream recommendations.
+4. **LND hostname** — `lnd.startos:10009` replaces the legacy
+   `lnd.embassy:10009`.
+5. **No Tor-only LND** — Jet connects to LND over the internal StartOS network.
+
+---
+
+## What Is Unchanged from Upstream
+
+- All `jet` CLI subcommands (`jet start`, `jet list-channels`, `jet probes`,
+  `jet rebalance`, `jet htlc-history`, etc.).
+- Rebalancing algorithm and policy.
+- Telegram bot integration.
+- Log file locations under `/tmp` inside the container.
+- The `daddy` watchdog (launcher.js) supervising the rebalancer,
+  htlc-logger, worker, and telegram sub-services.
+
+---
+
+## Quick Reference for AI Consumers
+
+```yaml
+package_id: lightning-jet
+upstream: https://github.com/itsneski/lightning-jet
+image:
+  source: dockerBuild (local Dockerfile)
+  base: node:20-bookworm-slim
+architectures: [x86_64, aarch64]
+volumes:
+  main:
+    api/config.json: managed FileModel (FileHelper.json)
+  mounts:
+    - /mnt/lnd: lnd dependency volume (read-only)
+interfaces: []
+dependencies:
+  lnd:
+    kind: running
+    versionRange: ">=0.20.1-beta:1"
+    healthChecks: [lnd]
+actions:
+  - set-telegram-token
+health_checks:
+  - primary: pgrep -f service/launcher.js (daemon ready)
+backup_volumes:
+  - main
+fixed_config:
+  macaroonPath: /mnt/lnd/data/chain/bitcoin/mainnet/admin.macaroon
+  tlsCertPath: /mnt/lnd/tls.cert
+  serverAddress: lnd.startos:10009
 ```
-git clone https://github.com/islandbitcoin/lightning-jet-startos.git
-cd lightning-jet-startos
-git submodule update --init --recursive
-```
-## Building
-
-To build the project, run one of the following commands:
-
-**Universal build** (both ARM64 and AMD64):
-```
-make
-```
-
-**ARM64/aarch64 only**:
-```
-make arm
-```
-
-**AMD64/x86_64 only**:
-```
-make x86
-```
-
-## Installing (on Embassy)
-
-SSH into an Embassy device.
-`scp` the `.s9pk` to any directory from your local machine.
-Run the following commands to install the package:
-
-```
-embassy-cli auth login
-# or: start-cli auth login
-# Enter your embassy password then run:
-embassy-cli package install /path/to/lightning-jet.s9pk
-# or: start-cli package install /path/to/lightning-jet.s9pk
-```
-## Verify Install
-
-Go to your Embassy Services page, select Lightning Jet and start the service.
-
-# Done

@@ -1,22 +1,22 @@
-FROM python:3.9-alpine
+FROM node:20-bookworm-slim AS builder
 
-# arm64 or amd64
-ARG PLATFORM
-# aarch64 or x86_64
-ARG ARCH
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    make gcc g++ python3 \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apk update && apk add --no-cache --virtual build-dependencies \
-  procps make gcc g++ curl wget bash sudo nodejs npm
-
-RUN wget https://github.com/mikefarah/yq/releases/download/v4.6.3/yq_linux_${PLATFORM}.tar.gz -O - |\
-  tar xz && mv yq_linux_${PLATFORM} /usr/bin/yq
-
-WORKDIR /app/
+WORKDIR /app
 COPY lightning-jet/ /app/
+RUN npm install --python=$(which python3)
 
-RUN npm install --build-from-source --python=$(which python3)
+FROM node:20-bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash procps curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=builder /app /app
 
 ENV PATH="/app:${PATH}"
 
-ADD ./docker_entrypoint.sh /usr/local/bin/docker_entrypoint.sh
-RUN chmod a+x /usr/local/bin/docker_entrypoint.sh
+CMD ["node", "/app/service/launcher.js"]
