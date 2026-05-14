@@ -9,7 +9,6 @@ export const manifest = setupManifest({
   upstreamRepo: 'https://github.com/itsneski/lightning-jet',
   marketingUrl: 'https://github.com/itsneski',
   donationUrl: null,
-  docsUrls: ['https://github.com/itsneski/lightning-jet#readme'],
   description: { short, long },
   volumes: ['main'],
   images: {
