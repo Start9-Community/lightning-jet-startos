@@ -5,7 +5,7 @@ export const manifest = setupManifest({
   id: 'lightning-jet',
   title: 'Lightning Jet',
   license: 'MIT',
-  packageRepo: 'https://github.com/islandbitcoin/lightning-jet-startos',
+  packageRepo: 'https://github.com/Start9-Community/lightning-jet-startos',
   upstreamRepo: 'https://github.com/itsneski/lightning-jet',
   marketingUrl: 'https://github.com/itsneski',
   donationUrl: null,

@@ -1,5 +1,7 @@
-## How the upstream version is pulled
-- Git submodule `lightning-jet/` → checkout new tag
-- Image `main` is `dockerBuild` from root (no dockerTag to update)
+# CLAUDE.md
 
-> Fork of islandbitcoin/lightning-jet-startos. Upstream is itsneski/lightning-jet.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the doc map and contribution workflow.
+
+## Operating rules
+
+- **Fork of `islandbitcoin/lightning-jet-startos`.** Confirm with `gh api repos/Start9-Community/lightning-jet-startos --jq '.parent.full_name'` — `manifest.upstreamRepo` points at `itsneski/lightning-jet`, the upstream *software*, not the parent of this packaging repo.
