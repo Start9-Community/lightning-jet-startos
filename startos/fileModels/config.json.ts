@@ -31,7 +31,9 @@ const shape = z.object({
   // Locked to the StartOS LND mount paths
   macaroonPath: z.literal(adminMacaroonPath).catch(adminMacaroonPath),
   tlsCertPath: z.literal(tlsCertPath).catch(tlsCertPath),
-  serverAddress: z.literal(lndRpcServer).catch(lndRpcServer),
+  // Resolved at runtime to LND's gRPC bridge address by main.ts; the catch is
+  // only a placeholder until it does.
+  serverAddress: z.string().catch(lndRpcServer),
 
   // User-configurable
   telegramToken: z.string().optional().catch(undefined),

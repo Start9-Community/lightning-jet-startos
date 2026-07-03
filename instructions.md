@@ -1,6 +1,6 @@
 # Lightning Jet
 
-Lightning Jet is a command-line-only tool. It has no web UI and exposes no network interfaces — you drive it from a shell attached to the running service.
+Lightning Jet is a command-line-only tool. It has no web UI and exposes no network interfaces — you drive it from a shell attached to the running service. You will need an SSH key configured on your StartOS server to reach that shell; see the [Start9 SSH guide](https://docs.start9.com/latest/user-manual/ssh) for setup instructions.
 
 ## Documentation
 
@@ -15,7 +15,7 @@ Lightning Jet is a command-line-only tool. It has no web UI and exposes no netwo
 ## Getting set up
 
 1. Install **LND** first and finish its setup (wallet created and unlocked). Lightning Jet will not start usefully without an LND it can call.
-2. Install Lightning Jet from the marketplace and acknowledge the install alert — Jet is CLI-only and begins attempting (real-sats) rebalances as soon as it is started.
+2. Install Lightning Jet from the marketplace. Jet is CLI-only and begins attempting (real-sats) rebalances as soon as it is started.
 3. Start the service. Wait for the **Jet Daemon** health check to report running.
 4. Open a shell on your StartOS server (over SSH) and attach to the Lightning Jet container:
 

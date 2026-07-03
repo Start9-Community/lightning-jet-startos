@@ -6,6 +6,7 @@ const dict = {
   'Jet Daemon': 1,
   'The Lightning Jet daemon is running': 2,
   'The Lightning Jet daemon is not running': 3,
+  'LND is not yet reachable on the internal network. It may still be starting.': 12,
 
   // actions/setTelegramToken.ts
   'Configure Telegram Bot': 4,

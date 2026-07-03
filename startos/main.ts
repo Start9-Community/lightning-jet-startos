@@ -1,13 +1,27 @@
 import { manifest as lndManifest } from 'lnd-startos/startos/manifest'
+import { jetConfig } from './fileModels/config.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
-import { jetConfigPath, lndMount } from './utils'
+import { jetConfigPath, lndGrpcHost, lndMount } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   /**
    * ======================== Setup ========================
    */
   console.info(i18n('Starting Lightning Jet...'))
+
+  // LND's gRPC endpoint over the LXC bridge (replaces the retired `lnd.startos`
+  // DNS name). Pin it into Jet's config so launcher.js dials the right address.
+  // LND is a hard dependency, so bail out until its interface resolves.
+  const serverAddress = await lndGrpcHost(effects)
+  if (!serverAddress) {
+    throw new Error(
+      i18n(
+        'LND is not yet reachable on the internal network. It may still be starting.',
+      ),
+    )
+  }
+  await jetConfig.merge(effects, { serverAddress })
 
   const mounts = sdk.Mounts.of()
     // Mount api/config.json from the main volume at its position inside /app.
@@ -37,7 +51,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
       readonly: true,
     })
 
-  const jetSub = await sdk.SubContainer.of(
+  const jetSub = sdk.SubContainer.of(
     effects,
     { imageId: 'main' },
     mounts,

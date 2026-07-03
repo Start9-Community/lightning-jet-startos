@@ -14,6 +14,7 @@ export default {
     9: 'Tu token de Telegram se ha guardado. Abre un chat con tu bot en Telegram y envía /start para empezar a recibir notificaciones.',
     10: 'Bot de Telegram deshabilitado',
     11: 'El token de Telegram se ha borrado. Lightning Jet ya no enviará notificaciones por Telegram.',
+    12: 'Aún no se puede acceder a LND en la red interna. Es posible que todavía se esté iniciando.',
   } satisfies LangDict,
   de_DE: {
     0: 'Lightning Jet wird gestartet...',
@@ -28,6 +29,7 @@ export default {
     9: 'Dein Telegram-Token wurde gespeichert. Starte in Telegram einen Chat mit deinem Bot und sende /start, um Benachrichtigungen zu erhalten.',
     10: 'Telegram-Bot deaktiviert',
     11: 'Das Telegram-Token wurde gelöscht. Lightning Jet sendet keine Telegram-Benachrichtigungen mehr.',
+    12: 'LND ist im internen Netzwerk noch nicht erreichbar. Möglicherweise startet es noch.',
   } satisfies LangDict,
   pl_PL: {
     0: 'Uruchamianie Lightning Jet...',
@@ -42,6 +44,7 @@ export default {
     9: 'Twój token Telegram został zapisany. Rozpocznij czat z botem w Telegramie i wyślij /start, aby zacząć otrzymywać powiadomienia.',
     10: 'Bot Telegram wyłączony',
     11: 'Token Telegram został wyczyszczony. Lightning Jet nie będzie już wysyłać powiadomień przez Telegram.',
+    12: 'LND nie jest jeszcze osiągalny w sieci wewnętrznej. Możliwe, że wciąż się uruchamia.',
   } satisfies LangDict,
   fr_FR: {
     0: 'Démarrage de Lightning Jet...',
@@ -56,5 +59,6 @@ export default {
     9: 'Votre jeton Telegram a été enregistré. Démarrez une conversation avec votre bot sur Telegram et envoyez /start pour commencer à recevoir des notifications.',
     10: 'Bot Telegram désactivé',
     11: 'Le jeton Telegram a été supprimé. Lightning Jet n’enverra plus de notifications Telegram.',
+    12: 'LND n’est pas encore joignable sur le réseau interne. Il est peut-être encore en cours de démarrage.',
   } satisfies LangDict,
 } as Record<string, LangDict>
