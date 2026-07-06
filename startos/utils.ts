@@ -1,5 +1,4 @@
 import { T } from '@start9labs/start-sdk'
-import { gRPCPort } from 'lnd-startos/startos/interfaces'
 import { sdk } from './sdk'
 
 export const lndMount = '/mnt/lnd' as const
@@ -10,13 +9,6 @@ export const jetConfigPath = '/app/api/config.json' as const
 export const adminMacaroonPath =
   `${lndMount}/data/chain/bitcoin/mainnet/admin.macaroon` as const
 export const tlsCertPath = `${lndMount}/tls.cert` as const
-
-// Loopback placeholder for the FileModel's serverAddress catch default, and the
-// value main.ts pins while LND is absent or still locked (no gRPC binding yet).
-// main.ts overwrites it with LND's live gRPC bridge address (see bridgeAddress)
-// once that binding resolves; a dead loopback is just connection-refused, which
-// launcher.js retries until the healing restart lands the real address.
-export const lndRpcServer = `127.0.0.1:${gRPCPort}` as const
 
 /**
  * Bridge address (`10.0.3.1:<assigned external port>`) of a dependency's
@@ -59,7 +51,8 @@ export function bridgeAddress(
         const port =
           host?.bindings[opts.internalPort]?.net.assignedPort ??
           opts.fallbackPort
-        return port != null ? `${osIp}:${port}` : null
+        if (port == null) return null
+        return `${osIp}:${port}`
       },
     )
   }

@@ -3,7 +3,7 @@ import { manifest as lndManifest } from 'lnd-startos/startos/manifest'
 import { jetConfig } from './fileModels/config.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
-import { bridgeAddress, jetConfigPath, lndMount, lndRpcServer } from './utils'
+import { bridgeAddress, jetConfigPath, lndMount } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   /**
@@ -13,17 +13,17 @@ export const main = sdk.setupMain(async ({ effects }) => {
 
   // LND's gRPC endpoint over the LXC bridge, pinned into Jet's config so
   // launcher.js dials the right address. This `.const()` restarts main only
-  // when the address itself changes: null (LND absent or still locked, no gRPC
-  // binding) resolves to a loopback placeholder launcher.js harmlessly retries,
-  // then one healing restart lands the real address once LND unlocks — and it
-  // stays put across LND lock/unlock cycles thereafter.
-  const serverAddress =
-    (await bridgeAddress(effects, {
-      packageId: 'lnd',
-      hostId: gRPCHostId,
-      internalPort: gRPCPort,
-    }).const()) ?? lndRpcServer
-  await jetConfig.merge(effects, { serverAddress })
+  // when the address itself changes. While LND is absent or still locked (no
+  // gRPC binding) it resolves to null and we leave serverAddress unwritten —
+  // Jet crash-loops into a red health check until the binding appears, at which
+  // point one healing restart lands the real address, staying put across LND
+  // lock/unlock cycles thereafter.
+  const serverAddress = await bridgeAddress(effects, {
+    packageId: 'lnd',
+    hostId: gRPCHostId,
+    internalPort: gRPCPort,
+  }).const()
+  if (serverAddress) await jetConfig.merge(effects, { serverAddress })
 
   const mounts = sdk.Mounts.of()
     // Mount api/config.json from the main volume at its position inside /app.
