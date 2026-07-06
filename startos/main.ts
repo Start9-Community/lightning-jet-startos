@@ -1,8 +1,9 @@
+import { gRPCHostId, gRPCPort } from 'lnd-startos/startos/interfaces'
 import { manifest as lndManifest } from 'lnd-startos/startos/manifest'
 import { jetConfig } from './fileModels/config.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
-import { jetConfigPath, lndGrpcHost, lndMount } from './utils'
+import { bridgeAddress, jetConfigPath, lndMount, lndRpcServer } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   /**
@@ -10,17 +11,18 @@ export const main = sdk.setupMain(async ({ effects }) => {
    */
   console.info(i18n('Starting Lightning Jet...'))
 
-  // LND's gRPC endpoint over the LXC bridge (replaces the retired `lnd.startos`
-  // DNS name). Pin it into Jet's config so launcher.js dials the right address.
-  // LND is a hard dependency, so bail out until its interface resolves.
-  const serverAddress = await lndGrpcHost(effects)
-  if (!serverAddress) {
-    throw new Error(
-      i18n(
-        'LND is not yet reachable on the internal network. It may still be starting.',
-      ),
-    )
-  }
+  // LND's gRPC endpoint over the LXC bridge, pinned into Jet's config so
+  // launcher.js dials the right address. This `.const()` restarts main only
+  // when the address itself changes: null (LND absent or still locked, no gRPC
+  // binding) resolves to a loopback placeholder launcher.js harmlessly retries,
+  // then one healing restart lands the real address once LND unlocks — and it
+  // stays put across LND lock/unlock cycles thereafter.
+  const serverAddress =
+    (await bridgeAddress(effects, {
+      packageId: 'lnd',
+      hostId: gRPCHostId,
+      internalPort: gRPCPort,
+    }).const()) ?? lndRpcServer
   await jetConfig.merge(effects, { serverAddress })
 
   const mounts = sdk.Mounts.of()

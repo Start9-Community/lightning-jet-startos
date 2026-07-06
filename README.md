@@ -121,7 +121,7 @@ container sees any changes after a restart.
 |---------|---------|------------------|
 | `macaroonPath` | `/mnt/lnd/data/chain/bitcoin/mainnet/admin.macaroon` | Fixed — locked to LND mount path |
 | `tlsCertPath` | `/mnt/lnd/tls.cert` | Fixed — locked to LND mount path |
-| `serverAddress` | resolved at runtime | Set by `main.ts` to LND's gRPC address over the LXC bridge (via `lndGrpcHost` in `startos/utils.ts`); `lnd.startos:10009` remains only as the FileModel `.catch()` placeholder |
+| `serverAddress` | resolved at runtime | Set by `main.ts` to LND's gRPC address over the LXC bridge (via `bridgeAddress` in `startos/utils.ts`); falls back to the `127.0.0.1:10009` loopback placeholder while LND is absent or still locked, then self-heals when the gRPC binding appears |
 | `telegramToken` | unset | Set via the **Configure Telegram Bot** action |
 | `rebalancer.minCapacity` | `50000` | Matches 0.3.x default |
 | `rebalancer.maxTime` | `30` | Max minutes per rebalance attempt |
@@ -230,9 +230,12 @@ registered.
 3. **Admin macaroon** — the 0.3.x entrypoint `chmod +r`'d the readonly
    macaroon; in 0.4.0 the LND mount is strictly read-only, so Jet is pointed
    at `admin.macaroon` directly. This matches upstream recommendations.
-4. **LND address** — read at runtime from LND's gRPC host over the LXC bridge
-   under SDK 2.0. The `lnd.startos` DNS name is retired (and `lnd.embassy` long
-   gone); it survives only as the FileModel's `.catch()` placeholder.
+4. **LND address** — resolved reactively from LND's gRPC binding over the LXC
+   bridge under SDK 2.0, re-resolving automatically when it changes so a fresh
+   LND install/unlock heals with one restart. A `127.0.0.1:10009` loopback
+   stands in as the FileModel's `.catch()` placeholder while LND is absent or
+   still locked (the retired `lnd.startos`/`lnd.embassy` DNS names no longer
+   resolve).
 5. **No Tor-only LND** — Jet connects to LND over the internal StartOS network.
 
 ---
