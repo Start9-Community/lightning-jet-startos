@@ -2,14 +2,14 @@ import { VersionInfo, IMPOSSIBLE } from '@start9labs/start-sdk'
 import { rm } from 'fs/promises'
 import { sdk } from '../sdk'
 
-export const v_1_6_0_6 = VersionInfo.of({
-  version: '1.6.0:6',
+export const v_1_6_0_7 = VersionInfo.of({
+  version: '1.6.0:7',
   releaseNotes: {
-    en_US: 'Internal updates (start-sdk 1.5.2).',
-    es_ES: 'Actualizaciones internas (start-sdk 1.5.2).',
-    de_DE: 'Interne Aktualisierungen (start-sdk 1.5.2).',
-    pl_PL: 'Aktualizacje wewnętrzne (start-sdk 1.5.2).',
-    fr_FR: 'Mises à jour internes (start-sdk 1.5.2).',
+    en_US: 'Internal updates (start-sdk 2.0.x)',
+    es_ES: 'Actualizaciones internas (start-sdk 2.0.x)',
+    de_DE: 'Interne Aktualisierungen (start-sdk 2.0.x)',
+    pl_PL: 'Aktualizacje wewnętrzne (start-sdk 2.0.x)',
+    fr_FR: 'Mises à jour internes (start-sdk 2.0.x)',
   },
   migrations: {
     up: async ({ effects }) => {

@@ -1,6 +1,6 @@
 import { FileHelper, z } from '@start9labs/start-sdk'
 import { sdk } from '../sdk'
-import { adminMacaroonPath, lndRpcServer, tlsCertPath } from '../utils'
+import { adminMacaroonPath, tlsCertPath } from '../utils'
 
 // Defaults mirror lightning-jet/api/config.json upstream, with minCapacity
 // overridden to the StartOS 0.3.x value (50_000) for continuity.
@@ -31,7 +31,10 @@ const shape = z.object({
   // Locked to the StartOS LND mount paths
   macaroonPath: z.literal(adminMacaroonPath).catch(adminMacaroonPath),
   tlsCertPath: z.literal(tlsCertPath).catch(tlsCertPath),
-  serverAddress: z.literal(lndRpcServer).catch(lndRpcServer),
+  // Resolved at runtime to LND's gRPC bridge address by main.ts. Absent until
+  // LND's gRPC binding appears — no fabricated placeholder, so Jet fails to
+  // connect (red health check) rather than dialing a dead loopback.
+  serverAddress: z.string().optional().catch(undefined),
 
   // User-configurable
   telegramToken: z.string().optional().catch(undefined),

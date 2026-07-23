@@ -93,9 +93,8 @@ across restarts.
 **First-run steps:**
 
 1. Install LND on StartOS.
-2. Install Lightning Jet from the marketplace. Acknowledge the install
-   alert warning that jet is CLI-only and that starting the service begins
-   spending-satoshi rebalance attempts.
+2. Install Lightning Jet from the marketplace. Jet is CLI-only and begins
+   attempting (real-sats) rebalances as soon as it is started.
 3. Start the service. The `daddy` watchdog launches the rebalancer,
    htlc-logger, worker, and — if configured — the Telegram bot.
 4. From a shell on your StartOS server, attach to the running container
@@ -122,7 +121,7 @@ container sees any changes after a restart.
 |---------|---------|------------------|
 | `macaroonPath` | `/mnt/lnd/data/chain/bitcoin/mainnet/admin.macaroon` | Fixed — locked to LND mount path |
 | `tlsCertPath` | `/mnt/lnd/tls.cert` | Fixed — locked to LND mount path |
-| `serverAddress` | `lnd.startos:10009` | Fixed — StartOS internal hostname |
+| `serverAddress` | resolved at runtime | Set by `main.ts` to LND's gRPC address over the LXC bridge (via `bridgeAddress` in `startos/utils.ts`); left unset while LND is absent or still locked, then self-heals when the gRPC binding appears |
 | `telegramToken` | unset | Set via the **Configure Telegram Bot** action |
 | `rebalancer.minCapacity` | `50000` | Matches 0.3.x default |
 | `rebalancer.maxTime` | `30` | Max minutes per rebalance attempt |
@@ -231,8 +230,11 @@ registered.
 3. **Admin macaroon** — the 0.3.x entrypoint `chmod +r`'d the readonly
    macaroon; in 0.4.0 the LND mount is strictly read-only, so Jet is pointed
    at `admin.macaroon` directly. This matches upstream recommendations.
-4. **LND hostname** — `lnd.startos:10009` replaces the legacy
-   `lnd.embassy:10009`.
+4. **LND address** — resolved reactively from LND's gRPC binding over the LXC
+   bridge under SDK 2.0, re-resolving automatically when it changes so a fresh
+   LND install/unlock heals with one restart. It is left unset while LND is
+   absent or still locked (the retired `lnd.startos`/`lnd.embassy` DNS names no
+   longer resolve).
 5. **No Tor-only LND** — Jet connects to LND over the internal StartOS network.
 
 ---
@@ -278,5 +280,5 @@ backup_volumes:
 fixed_config:
   macaroonPath: /mnt/lnd/data/chain/bitcoin/mainnet/admin.macaroon
   tlsCertPath: /mnt/lnd/tls.cert
-  serverAddress: lnd.startos:10009
+  serverAddress: runtime-resolved (LND gRPC address over LXC bridge)
 ```
