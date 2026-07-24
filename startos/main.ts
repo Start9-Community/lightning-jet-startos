@@ -3,7 +3,7 @@ import { manifest as lndManifest } from 'lnd-startos/startos/manifest'
 import { jetConfig } from './fileModels/config.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
-import { bridgeAddress, jetConfigPath, lndMount } from './utils'
+import { jetConfigPath, lndMount } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   /**
@@ -18,11 +18,13 @@ export const main = sdk.setupMain(async ({ effects }) => {
   // Jet crash-loops into a red health check until the binding appears, at which
   // point one healing restart lands the real address, staying put across LND
   // lock/unlock cycles thereafter.
-  const serverAddress = await bridgeAddress(effects, {
-    packageId: 'lnd',
-    hostId: gRPCHostId,
-    internalPort: gRPCPort,
-  }).const()
+  const serverAddress = await sdk.host
+    .getBridgeAddress(effects, {
+      packageId: 'lnd',
+      hostId: gRPCHostId,
+      internalPort: gRPCPort,
+    })
+    .const()
   if (serverAddress) await jetConfig.merge(effects, { serverAddress })
 
   const mounts = sdk.Mounts.of()
