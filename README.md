@@ -39,12 +39,12 @@ with it from a shell on your StartOS server.
 
 ## Image and Container Runtime
 
-| Property | Value |
-|----------|-------|
-| Source | `dockerBuild` from local `Dockerfile` (no upstream Docker image) |
-| Base | `node:20-bookworm-slim` |
-| Upstream source | Git submodule at `lightning-jet/` pinned to upstream tag |
-| Architectures | x86_64, aarch64 |
+| Property        | Value                                                            |
+| --------------- | ---------------------------------------------------------------- |
+| Source          | `dockerBuild` from local `Dockerfile` (no upstream Docker image) |
+| Base            | `node:20-bookworm-slim`                                          |
+| Upstream source | Git submodule at `lightning-jet/` pinned to upstream tag         |
+| Architectures   | x86_64, aarch64                                                  |
 
 The upstream project does not publish a Docker image. The package Dockerfile
 copies the contents of the `lightning-jet/` submodule into `/app`, runs
@@ -64,10 +64,10 @@ upstream releases a new tag (see [versions.md](https://docs.start9.com/packaging
 
 ## Volume and Data Layout
 
-| Volume | Mount Point | Type | Purpose |
-|--------|-------------|------|---------|
-| `main` | `/app/api/config.json` | single-file bind mount | Jet runtime config, managed by StartOS Actions |
-| (LND dependency) | `/mnt/lnd` | read-only | LND admin macaroon and TLS cert |
+| Volume           | Mount Point            | Type                   | Purpose                                        |
+| ---------------- | ---------------------- | ---------------------- | ---------------------------------------------- |
+| `main`           | `/app/api/config.json` | single-file bind mount | Jet runtime config, managed by StartOS Actions |
+| (LND dependency) | `/mnt/lnd`             | read-only              | LND admin macaroon and TLS cert                |
 
 **Key paths on the `main` volume:**
 
@@ -84,11 +84,11 @@ across restarts.
 
 ## Installation and First-Run Flow
 
-| Step | Upstream | StartOS |
-|------|----------|---------|
-| Installation | Clone repo, `npm install` | Install from marketplace |
+| Step           | Upstream                         | StartOS                        |
+| -------------- | -------------------------------- | ------------------------------ |
+| Installation   | Clone repo, `npm install`        | Install from marketplace       |
 | LND connection | Manual edit of `api/config.json` | Auto-configured via dependency |
-| SSH access | Manual setup | Uses StartOS SSH |
+| SSH access     | Manual setup                     | Uses StartOS SSH               |
 
 **First-run steps:**
 
@@ -117,26 +117,26 @@ container sees any changes after a restart.
 
 ### api/config.json (managed FileModel)
 
-| Setting | Default | Source / Purpose |
-|---------|---------|------------------|
-| `macaroonPath` | `/mnt/lnd/data/chain/bitcoin/mainnet/admin.macaroon` | Fixed — locked to LND mount path |
-| `tlsCertPath` | `/mnt/lnd/tls.cert` | Fixed — locked to LND mount path |
-| `serverAddress` | resolved at runtime | Set by `main.ts` to LND's gRPC address over the LXC bridge (via `bridgeAddress` in `startos/utils.ts`); left unset while LND is absent or still locked, then self-heals when the gRPC binding appears |
-| `telegramToken` | unset | Set via the **Configure Telegram Bot** action |
-| `rebalancer.minCapacity` | `50000` | Matches 0.3.x default |
-| `rebalancer.maxTime` | `30` | Max minutes per rebalance attempt |
-| `rebalancer.maxPpm` | `650` | Max PPM fee rate for manual rebalances |
-| `rebalancer.maxAutoPpm` | `500` | Max PPM fee rate for automated rebalances |
-| `rebalancer.maxInstances` | `10` | Max concurrent rebalance instances |
-| `rebalancer.maxPendingHtlcs` | `4` | FileModel default |
-| `rebalancer.enforceMaxPpm` | `false` | FileModel default |
-| `rebalancer.enforceProfitability` | `false` | FileModel default |
-| `rebalancer.buffer` | `250` | FileModel default |
-| `rebalancer.disabled` | `false` | FileModel default |
-| `rebalancer.exclude` | `[]` | FileModel default |
-| `log.level` | `info` | FileModel default |
-| `db.maxRebalanceHistoryDepth` | `180` | FileModel default |
-| `db.maxChannelEventsDepth` | `180` | FileModel default |
+| Setting                           | Default                                              | Source / Purpose                                                                                                                                                                            |
+| --------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `macaroonPath`                    | `/mnt/lnd/data/chain/bitcoin/mainnet/admin.macaroon` | Fixed — locked to LND mount path                                                                                                                                                            |
+| `tlsCertPath`                     | `/mnt/lnd/tls.cert`                                  | Fixed — locked to LND mount path                                                                                                                                                            |
+| `serverAddress`                   | resolved at runtime                                  | Set by `main.ts` to LND's gRPC address over the LXC bridge (via `sdk.host.getBridgeAddress`); left unset while LND is absent or still locked, then self-heals when the gRPC binding appears |
+| `telegramToken`                   | unset                                                | Set via the **Configure Telegram Bot** action                                                                                                                                               |
+| `rebalancer.minCapacity`          | `50000`                                              | Matches 0.3.x default                                                                                                                                                                       |
+| `rebalancer.maxTime`              | `30`                                                 | Max minutes per rebalance attempt                                                                                                                                                           |
+| `rebalancer.maxPpm`               | `650`                                                | Max PPM fee rate for manual rebalances                                                                                                                                                      |
+| `rebalancer.maxAutoPpm`           | `500`                                                | Max PPM fee rate for automated rebalances                                                                                                                                                   |
+| `rebalancer.maxInstances`         | `10`                                                 | Max concurrent rebalance instances                                                                                                                                                          |
+| `rebalancer.maxPendingHtlcs`      | `4`                                                  | FileModel default                                                                                                                                                                           |
+| `rebalancer.enforceMaxPpm`        | `false`                                              | FileModel default                                                                                                                                                                           |
+| `rebalancer.enforceProfitability` | `false`                                              | FileModel default                                                                                                                                                                           |
+| `rebalancer.buffer`               | `250`                                                | FileModel default                                                                                                                                                                           |
+| `rebalancer.disabled`             | `false`                                              | FileModel default                                                                                                                                                                           |
+| `rebalancer.exclude`              | `[]`                                                 | FileModel default                                                                                                                                                                           |
+| `log.level`                       | `info`                                               | FileModel default                                                                                                                                                                           |
+| `db.maxRebalanceHistoryDepth`     | `180`                                                | FileModel default                                                                                                                                                                           |
+| `db.maxChannelEventsDepth`        | `180`                                                | FileModel default                                                                                                                                                                           |
 
 Only the Telegram token is editable through the StartOS UI. Advanced
 rebalancer tuning is left to upstream defaults; users who need to change
@@ -165,9 +165,9 @@ jet <subcommand>
 
 ## Dependencies
 
-| Dependency | Required | Version | Purpose |
-|------------|----------|---------|---------|
-| LND | yes | `>=0.20.1-beta:1` | Lightning node to rebalance |
+| Dependency | Required | Version           | Purpose                     |
+| ---------- | -------- | ----------------- | --------------------------- |
+| LND        | yes      | `>=0.20.1-beta:1` | Lightning node to rebalance |
 
 Lightning Jet requires LND's admin macaroon to call mutation RPCs (open,
 close, rebalance). The macaroon and `tls.cert` are read from `/mnt/lnd`,
@@ -177,8 +177,8 @@ which is a read-only mount of LND's `main` volume.
 
 ## Actions
 
-| Action | Purpose |
-|--------|---------|
+| Action                     | Purpose                                                |
+| -------------------------- | ------------------------------------------------------ |
 | **Configure Telegram Bot** | Set or clear `telegramToken` for Jet bot notifications |
 
 The action writes to the `FileHelper.json` FileModel. Since the file is
@@ -206,9 +206,9 @@ Lightning state lives in LND. Back up LND separately.
 
 ## Health Checks
 
-| Check | Display Name | Method | Messages |
-|-------|--------------|--------|----------|
-| Daemon | Jet Daemon | `pgrep -f service/launcher.js` inside the subcontainer | Running / Not running |
+| Check  | Display Name | Method                                                 | Messages              |
+| ------ | ------------ | ------------------------------------------------------ | --------------------- |
+| Daemon | Jet Daemon   | `pgrep -f service/launcher.js` inside the subcontainer | Running / Not running |
 
 Lightning Jet does not listen on a TCP port, so a `pgrep`-based check is
 used instead of `checkPortListening`. The primary daemon exec is
@@ -269,7 +269,7 @@ interfaces: []
 dependencies:
   lnd:
     kind: running
-    versionRange: ">=0.20.1-beta:1"
+    versionRange: '>=0.20.1-beta:1'
     healthChecks: [lnd]
 actions:
   - set-telegram-token
