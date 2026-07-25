@@ -1,7 +1,7 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '1.6.0:10',
+  version: '1.6.0:11',
   releaseNotes: {
     en_US: `Keeps the LND connection working when LND changes how it serves TLS.
 
