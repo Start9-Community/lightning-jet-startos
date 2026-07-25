@@ -1,5 +1,3 @@
-import { sdk } from './sdk'
-
 export const lndMount = '/mnt/lnd' as const
 export const jetConfigPath = '/app/api/config.json' as const
 
