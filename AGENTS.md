@@ -6,14 +6,12 @@ Develop it inside a StartOS packaging workspace created by `start-cli s9pk init-
 which provides the packaging guide and agent context one level up. If you're reading this in a
 bare clone with no workspace, the full guide is at <https://docs.start9.com/packaging>.
 
-Work this package's `TODO.md` from top to bottom. Keep `README.md` (architecture, for developers and LLMs) and `instructions.md` (end-user docs) in sync with your changes.
+Work this package's `TODO.md` from top to bottom. Keep `README.md` (technical reference for an AI support or administering agent) and `instructions.md` (end-user docs) in sync with your changes.
 
 ## This repo
 
-- **Package id is `lightning-jet`.** It is a command-line-only tool — it exposes no network interfaces (`setInterfaces` returns `[]`) and has no web UI; users drive it from a shell attached to the running service.
-- **It is a hard dependent of `lnd`.** `main.ts` resolves LND's gRPC endpoint over the LXC bridge through `sdk.host.getBridgeAddress` (reading `lnd`'s `gRPCHostId` binding's assigned external port, with `gRPCHostId` / `gRPCPort` imported from `lnd-startos/startos/interfaces`) and pins that `host:port` into Jet's `api/config.json` (`serverAddress`). The `.const()` re-resolves reactively: while LND is absent or still locked it leaves `serverAddress` unwritten (Jet crash-loops into a red health check), then heals with one restart once the gRPC binding appears. LND's admin macaroon and `tls.cert` are read off a read-only dependency mount at `/mnt/lnd`.
-- **Config lives in `api/config.json`** on the `main` volume, managed by the `jetConfig` FileModel (`startos/fileModels/config.json.ts`). Only that single file is bind-mounted into `/app` — the rest of `/app` (and Jet's ephemeral sqlite under `/app/db`) comes from the image and is not persisted.
-
-## Inspecting a running install
-
-To run a command inside the service's container (read its generated config, grep app logs), use `start-cli package attach lightning-jet -n lightning-jet-sub -- <cmd>`. Select the subcontainer by **name** with `-n` (the name passed to `SubContainer.of` in `main.ts` — here `lightning-jet-sub`) or by image with `-i`. Note: `-s/--subcontainer` matches the internal **Guid**, not the name, so passing a name to `-s` fails with "no matching subcontainers".
+- **Run `launcher.js` in the foreground; never `jet start daddy`.** That command spawns the watchdog detached and exits, which makes the primary daemon exit on every start.
+- **The health check watches the watchdog alone, deliberately.** `launcher.js` respawns the rebalancer, htlc-logger, worker and telegram children, so a child failing is upstream's recovery working — surfacing it here would mask that with a service fault.
+- **Only `config.json` is bind-mounted, not `/app` or `/app/db`.** Mounting a volume over the app directory would hide the image's `node_modules` and JS. The consequence is that Jet's sqlite history is ephemeral; don't "fix" that by mounting the directory.
+- **Import LND's host id and port from `lnd-startos/startos/interfaces`** rather than hardcoding, so a change on LND's side is a compile error here.
+- **The admin macaroon is required and cannot be downgraded** — rebalancing calls LND's mutation RPCs, which a readonly macaroon rejects.

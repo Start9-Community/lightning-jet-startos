@@ -24,6 +24,7 @@ Lightning Jet is a command-line-only tool. It has no web UI and exposes no netwo
    ```
 
    From the attached shell, run `jet help` to list the available subcommands.
+
 5. Optional: run the **Configure Telegram Bot** action to paste in a BotFather token if you want Jet to send Telegram notifications.
 
 ## Using Lightning Jet
