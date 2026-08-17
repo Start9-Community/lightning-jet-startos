@@ -1,6 +1,6 @@
 # Lightning Jet
 
-Lightning Jet is a command-line-only tool. It has no web UI and exposes no network interfaces — you drive it from a shell attached to the running service. You will need an SSH key configured on your StartOS server to reach that shell; see the [Start9 SSH guide](https://docs.start9.com/latest/user-manual/ssh) for setup instructions.
+Lightning Jet is a command-line-only tool. It has no web UI and exposes no network interfaces — you drive it from a shell attached to the running service. You will need an SSH key configured on your StartOS server to reach that shell; see the [Start9 SSH guide](https://docs.start9.com/start-os/ssh) for setup instructions.
 
 ## Documentation
 
