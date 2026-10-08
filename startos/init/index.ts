@@ -1,7 +1,7 @@
 import { sdk } from '../sdk'
 import { actions } from '../actions'
 import { restoreInit } from '../backups'
-import { setDependencies } from '../dependencies'
+import { dependencies } from '../dependencies'
 import { setInterfaces } from '../interfaces'
 import { versionGraph } from '../versions'
 import { seedFiles } from './seedFiles'
@@ -11,8 +11,8 @@ export const init = sdk.setupInit(
   versionGraph,
   seedFiles,
   setInterfaces,
-  setDependencies,
   actions,
+  dependencies,
 )
 
 export const uninit = sdk.setupUninit(versionGraph)
