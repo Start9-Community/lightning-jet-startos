@@ -4,7 +4,7 @@ import { adminMacaroonPath, tlsCertPath } from '../utils'
 
 // Defaults mirror lightning-jet/api/config.json upstream, with minCapacity
 // overridden to the StartOS 0.3.x value (50_000) for continuity.
-const rebalancerShape = z.object({
+const rebalancerShape = z.looseObject({
   maxTime: z.number().catch(30),
   maxPpm: z.number().catch(650),
   maxAutoPpm: z.number().catch(500),
@@ -18,16 +18,16 @@ const rebalancerShape = z.object({
   exclude: z.array(z.string()).catch([]),
 })
 
-const logShape = z.object({
+const logShape = z.looseObject({
   level: z.string().catch('info'),
 })
 
-const dbShape = z.object({
+const dbShape = z.looseObject({
   maxRebalanceHistoryDepth: z.string().catch('180'),
   maxChannelEventsDepth: z.string().catch('180'),
 })
 
-const shape = z.object({
+const shape = z.looseObject({
   // Locked to the StartOS LND mount paths
   macaroonPath: z.literal(adminMacaroonPath).catch(adminMacaroonPath),
   tlsCertPath: z.literal(tlsCertPath).catch(tlsCertPath),
