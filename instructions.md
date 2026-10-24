@@ -4,7 +4,7 @@ Lightning Jet is a command-line-only tool. It has no web UI and exposes no netwo
 
 ## Documentation
 
-- [Lightning Jet README](https://github.com/itsneski/lightning-jet#readme) — the upstream guide to `jet` subcommands, the rebalancer, and the Telegram bot.
+- [Lightning Jet README](https://github.com/drneski/lightning-jet#readme) — the upstream guide to `jet` subcommands, the rebalancer, and the Telegram bot.
 
 ## What you get on StartOS
 
@@ -32,6 +32,12 @@ Lightning Jet is a command-line-only tool. It has no web UI and exposes no netwo
 ### The `jet` CLI
 
 All day-to-day use happens from an attached shell. Common subcommands include `jet list-channels`, `jet rebalance`, `jet probes`, and `jet htlc-history`; see the upstream README for the full list and for tuning advice.
+
+### Rebalance fee cap
+
+Automated rebalances default to a fee cap of 100,000 sats per rolling 24 hours. To change it, edit `rebalancer.maxDailyFee` in `api/config.json` on the service's `main` volume; `0` disables the cap. Manual rebalances are not limited by it, but their recorded fees count toward the automated allowance.
+
+**Restarting or updating the service clears the fee history and renews the allowance.** Fees can therefore exceed the cap across restarts; it is not a persistent daily spending limit.
 
 ### Actions
 

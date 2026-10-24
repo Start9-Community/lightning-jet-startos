@@ -10,6 +10,7 @@ const rebalancerShape = z.looseObject({
   maxAutoPpm: z.number().catch(500),
   maxInstances: z.number().catch(10),
   maxPendingHtlcs: z.number().catch(4),
+  maxDailyFee: z.number().catch(100_000),
   enforceMaxPpm: z.boolean().catch(false),
   enforceProfitability: z.boolean().catch(false),
   minCapacity: z.number().catch(50_000),

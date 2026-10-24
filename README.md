@@ -9,9 +9,9 @@
 > upstream documentation is accurate and fully applicable — see the
 > Documentation section of `instructions.md` for links.
 
-[Lightning Jet](https://github.com/itsneski/lightning-jet) automates channel rebalancing on an LND node, with a Telegram bot for notifications. It is a command-line tool: this package runs its watchdog as a service and wires it to the LND on the same server, and day-to-day use is a shell inside the container.
+[Lightning Jet](https://github.com/drneski/lightning-jet) automates channel rebalancing on an LND node, with a Telegram bot for notifications. It is a command-line tool: this package runs its watchdog as a service and wires it to the LND on the same server, and day-to-day use is a shell inside the container.
 
-- **Upstream repo:** <https://github.com/itsneski/lightning-jet>
+- **Upstream repo:** <https://github.com/drneski/lightning-jet>
 - **Wrapper repo:** <https://github.com/Start9-Community/lightning-jet-startos>
 
 ---
@@ -64,6 +64,8 @@ One volume, mounted as a **single file**, plus a read-only view of LND's.
 
 The consequence is that **Jet's working database is not persisted** — it lives in the image's filesystem and is discarded on every restart. Rebalance history and channel-event history therefore do not survive a restart, which is why the retention settings bound something that is already ephemeral.
 
+**The daily fee cap resets on every service restart or update.** `rebalancer.maxDailyFee` defaults to 100,000 sats per rolling 24 hours and uses the database's paid and active rebalance records. Losing those records renews the allowance, so this is not a spending cap across restarts. Set the field to `0` to disable the cap.
+
 ## File Models
 
 One model, and it is the whole configuration surface.
@@ -76,7 +78,7 @@ Its fields fall into three groups:
 
 - **Pinned.** The macaroon and certificate paths are `z.literal(...).catch(...)` — a changed value is **repaired on read**, not merely overwritten. They can only ever be the mount points of the LND dependency.
 - **Resolved at start.** LND's gRPC address, written by `main`. **When LND is absent or still locked it is left unwritten** rather than defaulted, so Jet fails to connect and the health check goes red — instead of silently dialing a dead address. The reactive read heals it with one restart when LND's binding appears.
-- **User-owned.** The Telegram token, the avoid list, log level, history retention, and the whole rebalancer block — maximum time and fee rates, concurrency, HTLC limits, profitability enforcement, minimum capacity, and an exclusion list.
+- **User-owned.** The Telegram token, the avoid list, log level, history retention, and the whole rebalancer block — maximum time and fee rates, the daily fee cap, concurrency, HTLC limits, profitability enforcement, minimum capacity, and an exclusion list.
 
 **Most of that rebalancer block is only reachable by editing the file**, since the package exposes just one action. The defaults mirror upstream's, with one exception carried forward from the previous package generation for continuity.
 

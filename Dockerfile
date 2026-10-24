@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS builder
+FROM node:24.22.1-bookworm-slim AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     make gcc g++ python3 \
@@ -8,11 +8,12 @@ WORKDIR /app
 COPY lightning-jet/ /app/
 RUN npm install --python=$(which python3)
 
-FROM node:20-bookworm-slim
+FROM node:24.22.1-bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash procps curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && ! grep -q MIICTjCCAdOgAwIBAgIKPPYHqWhwDtqLhDAKBggqhkjOPQQDAzBr /etc/ssl/certs/ca-certificates.crt
 
 WORKDIR /app
 COPY --from=builder /app /app
