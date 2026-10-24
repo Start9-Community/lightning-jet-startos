@@ -4,7 +4,7 @@ Lightning Jet is a command-line-only tool. It has no web UI and exposes no netwo
 
 ## Documentation
 
-- [Lightning Jet README](https://github.com/itsneski/lightning-jet#readme) — the upstream guide to `jet` subcommands, the rebalancer, and the Telegram bot.
+- [Lightning Jet README](https://github.com/drneski/lightning-jet#readme) — the upstream guide to `jet` subcommands, the rebalancer, and the Telegram bot.
 
 ## What you get on StartOS
 
