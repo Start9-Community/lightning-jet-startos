@@ -64,6 +64,8 @@ One volume, mounted as a **single file**, plus a read-only view of LND's.
 
 The consequence is that **Jet's working database is not persisted** — it lives in the image's filesystem and is discarded on every restart. Rebalance history and channel-event history therefore do not survive a restart, which is why the retention settings bound something that is already ephemeral.
 
+**The daily fee cap resets on every service restart or update.** `rebalancer.maxDailyFee` defaults to 100,000 sats per rolling 24 hours and uses the database's paid and active rebalance records. Losing those records renews the allowance, so this is not a spending cap across restarts. Set the field to `0` to disable the cap.
+
 ## File Models
 
 One model, and it is the whole configuration surface.
