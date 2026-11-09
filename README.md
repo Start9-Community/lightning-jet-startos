@@ -55,10 +55,10 @@ That is a deliberate departure from upstream's own start command, which spawns t
 
 One volume, mounted as a **single file**, plus a read-only view of LND's.
 
-| Volume            | Mount Point         | Purpose                          |
-| ----------------- | ------------------- | -------------------------------- |
-| `main`            | Jet's `config.json` | The configuration, and only that |
-| LND's `main` (ro) | `/mnt/lnd`          | LND's certificate and macaroon   |
+| Volume                        | Mount Point         | Purpose                                            |
+| ----------------------------- | ------------------- | -------------------------------------------------- |
+| `main`                        | Jet's `config.json` | The configuration, and only that                   |
+| LND's `public` (ro), `admin/` | `/mnt/lnd`          | LND's certificate and admin macaroon, nothing else |
 
 **Only the one configuration file is mounted**, not the application directory. Mounting a volume over that directory would hide the image's own code and dependencies, so the package bind-mounts the single file instead.
 
@@ -88,9 +88,9 @@ Init merges the model on **every** init, so a field added in a later version pic
 
 One, and it is required.
 
-| Dependency | Required | Health checks required | Mounted                         | Why                    |
-| ---------- | -------- | ---------------------- | ------------------------------- | ---------------------- |
-| LND        | Yes      | `lnd`                  | `main`, read-only at `/mnt/lnd` | The node it rebalances |
+| Dependency | Required | Health checks required | Mounted                                         | Why                    |
+| ---------- | -------- | ---------------------- | ----------------------------------------------- | ---------------------- |
+| LND        | Yes      | `lnd`                  | `public` tier `admin/`, read-only at `/mnt/lnd` | The node it rebalances |
 
 **This package uses LND's admin macaroon, and needs it.** Rebalancing calls LND's mutation RPCs, which a read-only macaroon cannot authorize — so anyone with access to this service can move funds between your channels.
 
@@ -160,7 +160,7 @@ A restored instance comes back with the same policy and the same Telegram token,
 3. **The admin macaroon is required**, so shell access here can move funds between your channels.
 4. **Only the Telegram token has an action.** The rebalancer's policy is edited in the configuration file directly.
 5. **Rebalancing is enabled by default**, under upstream's default fee limits.
-6. **Mainnet only.** The macaroon path is pinned to Bitcoin mainnet.
+6. **Mainnet only.** LND's `admin/` tier carries the mainnet admin macaroon.
 7. **The health check observes the watchdog only**, not the work.
 
 ---
@@ -176,7 +176,7 @@ architectures:
 subcontainers:
   - lightning-jet-sub
 volumes:
-  main: mounted as Jet's config.json alone # LND's main volume is read-only at /mnt/lnd
+  main: mounted as Jet's config.json alone # LND's public volume, tier admin/ (admin.macaroon, tls.cert), is read-only at /mnt/lnd
 file_models:
   - config.json # the whole configuration surface
 startos_managed_env_vars: [] # everything is written into config.json
