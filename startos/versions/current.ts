@@ -1,13 +1,13 @@
 import { VersionInfo } from '@start9labs/start-sdk'
 
 export const current = VersionInfo.of({
-  version: '1.7.0:0',
+  version: '1.7.0:1',
   releaseNotes: {
-    en_US: `Updated Lightning Jet to 1.7.0. Stops trusting certificates from a compromised certificate authority (eMudhra). Automated rebalances now have a default fee cap of 100,000 sats per rolling 24 hours. Restarting or updating the service resets the fee history and this allowance; fees can exceed that cap across restarts. Set \`maxDailyFee\` in the rebalancer configuration to change the cap, or \`0\` to remove it.`,
-    es_ES: `Lightning Jet actualizado a 1.7.0. Deja de confiar en los certificados de una autoridad de certificación comprometida (eMudhra). Los reequilibrios automáticos ahora tienen un límite predeterminado de 100.000 sats en comisiones por cada período móvil de 24 horas. Reiniciar o actualizar el servicio borra el historial de comisiones y restablece el saldo disponible; las comisiones pueden superar ese límite entre reinicios. Ajusta \`maxDailyFee\` en la configuración del reequilibrador para cambiar el límite, o \`0\` para quitarlo.`,
-    de_DE: `Lightning Jet auf 1.7.0 aktualisiert. Vertraut Zertifikaten einer kompromittierten Zertifizierungsstelle (eMudhra) nicht mehr. Automatische Rebalancings haben jetzt ein Standard-Gebührenlimit von 100.000 Sats pro rollierenden 24 Stunden. Ein Neustart oder Update des Dienstes setzt den Gebührenverlauf und das verfügbare Budget zurück; über Neustarts hinweg können die Gebühren dieses Limit überschreiten. Setze \`maxDailyFee\` in der Rebalancer-Konfiguration, um die Grenze zu ändern, oder \`0\`, um sie aufzuheben.`,
-    pl_PL: `Zaktualizowano Lightning Jet do 1.7.0. Przestaje ufać certyfikatom przejętego urzędu certyfikacji (eMudhra). Automatyczne rebalansowanie ma teraz domyślny limit opłat 100 000 satów w ruchomym okresie 24 godzin. Ponowne uruchomienie lub aktualizacja usługi zeruje historię opłat i odnawia dostępny budżet; opłaty mogą przekroczyć ten limit między restartami. Ustaw \`maxDailyFee\` w konfiguracji rebalancera, aby zmienić limit, lub \`0\`, aby go usunąć.`,
-    fr_FR: `Lightning Jet mis à jour vers 1.7.0. Ne fait plus confiance aux certificats d'une autorité de certification compromise (eMudhra). Les rééquilibrages automatiques ont désormais un plafond de frais par défaut de 100 000 sats sur 24 heures glissantes. Redémarrer ou mettre à jour le service efface l'historique des frais et réinitialise ce budget ; les frais peuvent dépasser ce plafond entre les redémarrages. Définissez \`maxDailyFee\` dans la configuration du rééquilibreur pour modifier ce plafond, ou \`0\` pour le supprimer.`,
+    en_US: `Requires StartOS 0.4.1 or later. Lightning Jet now reads only the credential it needs from LND, and can no longer read LND's seed or other files. Requires LND 0.21.6-beta:3 or later.`,
+    es_ES: `Requiere StartOS 0.4.1 o posterior. Lightning Jet ahora lee de LND solo la credencial que necesita y ya no puede leer la semilla ni otros archivos de LND. Requiere LND 0.21.6-beta:3 o posterior.`,
+    de_DE: `Erfordert StartOS 0.4.1 oder neuer. Lightning Jet liest von LND nur noch die Zugangsdaten, die es benötigt, und kann den Seed und andere Dateien von LND nicht mehr lesen. Erfordert LND 0.21.6-beta:3 oder neuer.`,
+    pl_PL: `Wymaga StartOS 0.4.1 lub nowszego. Lightning Jet odczytuje teraz z LND tylko potrzebne mu dane uwierzytelniające i nie ma już dostępu do seeda ani innych plików LND. Wymaga LND 0.21.6-beta:3 lub nowszego.`,
+    fr_FR: `Nécessite StartOS 0.4.1 ou ultérieur. Lightning Jet ne lit plus dans LND que l'identifiant dont il a besoin, et ne peut plus lire la seed ni les autres fichiers de LND. Nécessite LND 0.21.6-beta:3 ou ultérieur.`,
   },
   migrations: {},
 })

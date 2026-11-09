@@ -45,12 +45,11 @@ export const main = sdk.setupMain(async ({ effects }) => {
       readonly: false,
       type: 'file',
     })
-    // LND volume (certs + macaroons). Mounted readonly; Lightning Jet only
-    // reads the admin macaroon and tls.cert.
+    // LND's admin tier: admin.macaroon and tls.cert only.
     .mountDependency<typeof lndManifest>({
       dependencyId: 'lnd',
-      volumeId: 'main',
-      subpath: null,
+      volumeId: 'public',
+      subpath: 'admin',
       mountpoint: lndMount,
       readonly: true,
     })
