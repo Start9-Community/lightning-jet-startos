@@ -61,6 +61,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
    * ======================== Daemons ========================
    */
   // Active rebalance registrations expire with the service processes.
+  // Jet's `db/utils` helpers swallow SQLite errors.
   const daemons = sdk.Daemons.of(effects).addOneshot('clear-stale-rebalances', {
     subcontainer: jetSub,
     exec: {

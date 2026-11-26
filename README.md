@@ -63,6 +63,8 @@ The image links `/app/db/jet.db` to the persistent directory so the upstream mod
 
 Before starting the watchdog, the package clears active rebalance registrations from the previous run. Their process IDs do not identify processes in the new run. Completed rebalance history and its fee records stay intact.
 
+**A database error holds the watchdog stopped.** The cleanup fails on any SQLite error and retries, and the watchdog starts only once it succeeds. The error appears in the service logs.
+
 ## File Models
 
 One model, and it is the whole configuration surface.
@@ -151,12 +153,11 @@ A restore brings back Jet’s rebalance history, channel events, policy, and Tel
 ## Limitations and Differences
 
 1. **No interfaces at all.** Everything is done from an attached shell.
-2. **History from earlier builds.** Through 1.7.0:1, the database lived in the running container. See the upgrade instructions before replacing it.
-3. **The admin macaroon is required**, so shell access here can move funds between your channels.
-4. **Only the Telegram token has an action.** The rebalancer's policy is edited in the configuration file directly.
-5. **Rebalancing is enabled by default**, under upstream's default fee limits.
-6. **Mainnet only.** LND's `admin/` tier carries the mainnet admin macaroon.
-7. **The health check observes the watchdog only**, not the work.
+2. **The admin macaroon is required**, so shell access here can move funds between your channels.
+3. **Only the Telegram token has an action.** The rebalancer's policy is edited in the configuration file directly.
+4. **Rebalancing is enabled by default**, under upstream's default fee limits.
+5. **Mainnet only.** LND's `admin/` tier carries the mainnet admin macaroon.
+6. **The health check observes the watchdog only**, not the work.
 
 ---
 

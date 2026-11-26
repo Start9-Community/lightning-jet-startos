@@ -37,12 +37,6 @@ All day-to-day use happens from an attached shell. Common subcommands include `j
 
 Automated rebalances default to a fee cap of 100,000 sats per rolling 24 hours. To change it, edit `rebalancer.maxDailyFee` in `api/config.json` on the service's `main` volume; `0` disables the cap. Manual rebalances are not limited by it, but their recorded fees count toward the automated allowance.
 
-From package 1.7.0:2 onward, recorded fees continue to count toward the rolling cap after a restart or update.
-
-### Upgrading from 1.7.0:1 or earlier
-
-The previous package kept its SQLite history in the running Jet container. To keep that history, take a consistent SQLite snapshot of `/app/db/jet.db` while the old container is still available, before stopping the service or installing the update. Place the snapshot at `db/jet.db` on Jet’s `main` volume before starting the updated service. The existing `api/config.json` on that volume carries over automatically. Without a snapshot, the updated package starts a fresh history.
-
 ### Actions
 
 - **Configure Telegram Bot** — paste the API token BotFather gave you when you created your Jet bot, or leave it blank to disable Telegram notifications. The token is saved to Jet's config file; the next restart of the service picks it up.
