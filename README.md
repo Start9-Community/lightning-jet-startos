@@ -61,6 +61,8 @@ That is a deliberate departure from upstream's own start command, which spawns t
 
 The image links `/app/db/jet.db` to the persistent directory so the upstream modules in `/app/db` stay available. Recorded rebalance fees carry over across service restarts and updates and continue to count toward the rolling 24-hour cap.
 
+Before starting the watchdog, the package clears active rebalance registrations from the previous run. Their process IDs do not identify processes in the new run. Completed rebalance history and its fee records stay intact.
+
 ## File Models
 
 One model, and it is the whole configuration surface.

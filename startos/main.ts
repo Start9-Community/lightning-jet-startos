@@ -60,7 +60,26 @@ export const main = sdk.setupMain(async ({ effects }) => {
   /**
    * ======================== Daemons ========================
    */
-  return sdk.Daemons.of(effects).addDaemon('primary', {
+  // Active rebalance registrations expire with the service processes.
+  const daemons = sdk.Daemons.of(effects).addOneshot('clear-stale-rebalances', {
+    subcontainer: jetSub,
+    exec: {
+      command: [
+        'node',
+        '-e',
+        `const db = require('/app/db/utils');
+for (const { pid } of db.listActiveRebalancesSync()) {
+  db.deleteActiveRebalanceSync(pid);
+}
+if (db.listActiveRebalancesSync().length) {
+  throw new Error('Failed to clear stale rebalance registrations');
+}`,
+      ],
+    },
+    requires: [],
+  })
+
+  return daemons.addDaemon('primary', {
     subcontainer: jetSub,
     // Run the "daddy" watchdog (launcher.js) directly in the foreground.
     // `jet start daddy` spawns it detached and exits, which would make the
@@ -89,6 +108,6 @@ export const main = sdk.setupMain(async ({ effects }) => {
         }
       },
     },
-    requires: [],
+    requires: ['clear-stale-rebalances'],
   })
 })
