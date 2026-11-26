@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 COPY --from=builder /app /app
+# Keep Jet's database module in the image and its SQLite files together on the data volume.
+RUN ln -s /var/lib/lightning-jet/jet.db /app/db/jet.db
 
 ENV PATH="/app:${PATH}"
 

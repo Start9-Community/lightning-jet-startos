@@ -28,22 +28,18 @@ export const main = sdk.setupMain(async ({ effects }) => {
   if (serverAddress) await jetConfig.merge(effects, { serverAddress })
 
   const mounts = sdk.Mounts.of()
-    // Mount api/config.json from the main volume at its position inside /app.
-    // This file is the FileModel managed by Actions, so Actions and main.ts
-    // stay in sync and the upstream entrypoint reads its config unchanged.
-    //
-    // NOTE: We only bind-mount this single file (not the whole /app or /app/db
-    // tree) because /app is populated by the Dockerfile (npm install) and
-    // mounting a volume over it would hide the image's node_modules and JS.
-    // Jet's sqlite files inside /app/db are therefore ephemeral across
-    // restarts — matching the 0.3.x behavior, where the main volume was
-    // mounted at /root (not /app) and the db was never persisted.
     .mountVolume({
       volumeId: 'main',
       subpath: '/api/config.json',
       mountpoint: jetConfigPath,
       readonly: false,
       type: 'file',
+    })
+    .mountVolume({
+      volumeId: 'main',
+      subpath: '/db',
+      mountpoint: '/var/lib/lightning-jet',
+      readonly: false,
     })
     // LND's admin tier: admin.macaroon and tls.cert only.
     .mountDependency<typeof lndManifest>({
@@ -64,7 +60,30 @@ export const main = sdk.setupMain(async ({ effects }) => {
   /**
    * ======================== Daemons ========================
    */
-  return sdk.Daemons.of(effects).addDaemon('primary', {
+  // Active rebalance registrations expire with the service processes.
+  // Jet's `db/utils` helpers swallow SQLite errors.
+  const daemons = sdk.Daemons.of(effects).addOneshot('clear-stale-rebalances', {
+    subcontainer: jetSub,
+    exec: {
+      command: [
+        'node',
+        '-e',
+        `const { DatabaseSync } = require('node:sqlite');
+const db = new DatabaseSync('/app/db/jet.db');
+try {
+  // Jet creates this table on its first run. An empty database needs no cleanup.
+  if (db.prepare("SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = 'active_rebalance'").get()) {
+    db.exec('DELETE FROM active_rebalance');
+  }
+} finally {
+  db.close();
+}`,
+      ],
+    },
+    requires: [],
+  })
+
+  return daemons.addDaemon('primary', {
     subcontainer: jetSub,
     // Run the "daddy" watchdog (launcher.js) directly in the foreground.
     // `jet start daddy` spawns it detached and exits, which would make the
@@ -93,6 +112,6 @@ export const main = sdk.setupMain(async ({ effects }) => {
         }
       },
     },
-    requires: [],
+    requires: ['clear-stale-rebalances'],
   })
 })

@@ -37,13 +37,10 @@ All day-to-day use happens from an attached shell. Common subcommands include `j
 
 Automated rebalances default to a fee cap of 100,000 sats per rolling 24 hours. To change it, edit `rebalancer.maxDailyFee` in `api/config.json` on the service's `main` volume; `0` disables the cap. Manual rebalances are not limited by it, but their recorded fees count toward the automated allowance.
 
-**Restarting or updating the service clears the fee history and renews the allowance.** Fees can therefore exceed the cap across restarts; it is not a persistent daily spending limit.
-
 ### Actions
 
 - **Configure Telegram Bot** — paste the API token BotFather gave you when you created your Jet bot, or leave it blank to disable Telegram notifications. The token is saved to Jet's config file; the next restart of the service picks it up.
 
 ## Limitations
 
-- Lightning Jet's internal sqlite database (under `/app/db` in the container) is not persisted across service restarts or updates. Routing history that Jet itself records will reset; LND's own data is unaffected.
 - Advanced rebalancer tuning (max PPM, max instances, capacity thresholds, etc.) is not exposed through the StartOS UI. Edit `api/config.json` on the service's `main` volume directly, or use the relevant `jet` subcommands from the attached shell.
