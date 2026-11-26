@@ -53,18 +53,13 @@ That is a deliberate departure from upstream's own start command, which spawns t
 
 ## Volume and Data Layout
 
-One volume, mounted as a **single file**, plus a read-only view of LND's.
+| Volume | Path in Jet | Contents |
+| --- | --- | --- |
+| `main/api/config.json` | `/app/api/config.json` | Jet configuration managed by the StartOS actions |
+| `main/db/` | `/var/lib/lightning-jet/` | SQLite database, journal, WAL and shared-memory files |
+| LND’s read-only `public/admin/` | `/mnt/lnd` | LND certificate and admin macaroon |
 
-| Volume                        | Mount Point         | Purpose                                            |
-| ----------------------------- | ------------------- | -------------------------------------------------- |
-| `main`                        | Jet's `config.json` | The configuration, and only that                   |
-| LND's `public` (ro), `admin/` | `/mnt/lnd`          | LND's certificate and admin macaroon, nothing else |
-
-**Only the one configuration file is mounted**, not the application directory. Mounting a volume over that directory would hide the image's own code and dependencies, so the package bind-mounts the single file instead.
-
-The consequence is that **Jet's working database is not persisted** — it lives in the image's filesystem and is discarded on every restart. Rebalance history and channel-event history therefore do not survive a restart, which is why the retention settings bound something that is already ephemeral.
-
-**The daily fee cap resets on every service restart or update.** `rebalancer.maxDailyFee` defaults to 100,000 sats per rolling 24 hours and uses the database's paid and active rebalance records. Losing those records renews the allowance, so this is not a spending cap across restarts. Set the field to `0` to disable the cap.
+The image links `/app/db/jet.db` to the persistent directory so the upstream modules in `/app/db` stay available. Recorded rebalance fees carry over across service restarts and updates and continue to count toward the rolling 24-hour cap.
 
 ## File Models
 
@@ -147,7 +142,7 @@ The consequence: **a green check does not mean rebalancing is happening.** It do
 
 ## Backups and Restore
 
-The `main` volume is copied wholesale — `sdk.Backups.ofVolumes('main')`. In practice that is one file: the configuration.
+The `main` volume is copied wholesale — `sdk.Backups.ofVolumes('main')`. It contains the configuration and the SQLite database directory.
 
 **Nothing else is worth keeping.** The rebalance and channel-event history lives in the image's filesystem and is discarded on restart anyway, and the credentials belong to LND.
 
@@ -156,7 +151,7 @@ A restored instance comes back with the same policy and the same Telegram token,
 ## Limitations and Differences
 
 1. **No interfaces at all.** Everything is done from an attached shell.
-2. **Jet's database is not persisted.** History does not survive a restart.
+2. **History from earlier builds.** Through 1.7.0:1, the database lived in the running container. See the upgrade instructions before replacing it.
 3. **The admin macaroon is required**, so shell access here can move funds between your channels.
 4. **Only the Telegram token has an action.** The rebalancer's policy is edited in the configuration file directly.
 5. **Rebalancing is enabled by default**, under upstream's default fee limits.
@@ -176,7 +171,7 @@ architectures:
 subcontainers:
   - lightning-jet-sub
 volumes:
-  main: mounted as Jet's config.json alone # LND's public volume, tier admin/ (admin.macaroon, tls.cert), is read-only at /mnt/lnd
+  main: Jet config file and SQLite data directory # LND's public volume, tier admin/ (admin.macaroon, tls.cert), is read-only at /mnt/lnd
 file_models:
   - config.json # the whole configuration surface
 startos_managed_env_vars: [] # everything is written into config.json

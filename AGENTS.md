@@ -35,6 +35,6 @@ verified, tried, and decided belongs in the commit message and the PR body.
 ## This repo
 
 - **Run `launcher.js` in the foreground and health-check only it; never `jet start daddy`.** That command detaches the watchdog and exits, and the watchdog already respawns its children.
-- **Bind-mount `config.json` alone, never `/app` or `/app/db`.** A volume there hides the image's `node_modules` and JS.
+- **Mount the config file and the SQLite data directory separately. Keep the image’s `/app` and `/app/db` visible.** A volume there hides the image's `node_modules` and JS.
 - **Import LND's host id and port from `lnd-startos/startos/interfaces`**, never hardcode them, so a change on LND's side is a compile error here.
 - **Keep the admin macaroon** — rebalancing calls LND's mutation RPCs, which a readonly macaroon rejects.
