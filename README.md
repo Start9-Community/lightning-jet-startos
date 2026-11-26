@@ -144,9 +144,7 @@ The consequence: **a green check does not mean rebalancing is happening.** It do
 
 The `main` volume is copied wholesale — `sdk.Backups.ofVolumes('main')`. It contains the configuration and the SQLite database directory.
 
-**Nothing else is worth keeping.** The rebalance and channel-event history lives in the image's filesystem and is discarded on restart anyway, and the credentials belong to LND.
-
-A restored instance comes back with the same policy and the same Telegram token, and re-resolves LND's address on the new server. It needs LND present and unlocked before it does anything.
+A restore brings back Jet’s rebalance history, channel events, policy, and Telegram settings. Jet resolves LND’s address on the new server and reads its credentials from LND once that service is available.
 
 ## Limitations and Differences
 
