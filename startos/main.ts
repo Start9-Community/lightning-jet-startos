@@ -67,12 +67,15 @@ export const main = sdk.setupMain(async ({ effects }) => {
       command: [
         'node',
         '-e',
-        `const db = require('/app/db/utils');
-for (const { pid } of db.listActiveRebalancesSync()) {
-  db.deleteActiveRebalanceSync(pid);
-}
-if (db.listActiveRebalancesSync().length) {
-  throw new Error('Failed to clear stale rebalance registrations');
+        `const { DatabaseSync } = require('node:sqlite');
+const db = new DatabaseSync('/app/db/jet.db');
+try {
+  // Jet creates this table on its first run. An empty database needs no cleanup.
+  if (db.prepare("SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = 'active_rebalance'").get()) {
+    db.exec('DELETE FROM active_rebalance');
+  }
+} finally {
+  db.close();
 }`,
       ],
     },
